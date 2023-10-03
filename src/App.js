@@ -49,8 +49,7 @@ function App() {
   return (
     <div className="App">
       <NameContext.Provider value={{ name :'Gujju', name2  : "Steve" }}>
-      {/* <ArrayInsideComplexObject/> */}
-      <FunctionUseRefHook/>
+      <ArrayInsideComplexObject/>
       </NameContext.Provider>
     </div>
   );
