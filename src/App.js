@@ -49,7 +49,7 @@ function App() {
   return (
     <div className="App">
       <NameContext.Provider value={{ name :'Gujju', name2  : "Steve" }}>
-      <Class/>
+      <ArrayInsideComplexObject/>
       </NameContext.Provider>
     </div>
   );
