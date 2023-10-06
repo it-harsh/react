@@ -40,6 +40,7 @@ import RefComponent from './Components/RefComponent';
 import RefComponentUncontrolled from './Components/RefComponentUncontrolled';
 import FunctionUseRef from './Components/FunctionUseRef';
 import FunctionUseRefHook from './Components/FunctionUseRefHook';
+import BillSplitter from './Components/BillSplitter';
 
 let a  =  "Variable value"
 
@@ -49,7 +50,7 @@ function App() {
   return (
     <div className="App">
       <NameContext.Provider value={{ name :'Gujju', name2  : "Steve" }}>
-      <ArrayInsideComplexObject/>
+        <BillSplitter/>
       </NameContext.Provider>
     </div>
   );
