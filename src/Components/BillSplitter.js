@@ -83,48 +83,53 @@ export default function BillSplitter(){
     }
 
     return(
-        <form>
-            <label>Add Names : &nbsp;</label>
-            <input type="text" name="addName" required="required" placeholder='Enter name here' onChange={handleInputNameChange}></input>
-            <button onClick={addName}>Add Name</button>
-            <ul>
-                {
-                    nameList.map(function(data,id){
-                        if(data !== "Select Name"){
-                            return  <li>{data}</li>
+        <div>
+            <h1> Split Your Bill ...  </h1>
+            <form>
+                <label>Step 1 : Add Names &nbsp;</label>
+                <input type="text" name="addName" required="required" placeholder='Enter name here' onChange={handleInputNameChange}></input>
+                &nbsp; <button onClick={addName}>Add Name</button>
+                <ul>
+                    {
+                        nameList.map(function(data,id){
+                            if(data !== "Select Name"){
+                                return  <li>{data}</li>
+                            }
+                        })
+                    }
+                </ul>
+                <label>Step 2 : &nbsp;</label>
+                <select onChange={handleDropDownChange}>
+                    {nameList.map((f,id) =>  <option key={id}>{f}</option>)}
+                </select>
+                &nbsp;
+                <input type="number" onChange={handleAmountEntry}></input>
+                &nbsp;
+                <button  onClick={addExpenseEntry}>Add Entry</button>
+                {/* <h1>Hello , Amount is  {amount} and Name is {dropDownName}</h1> */}
+                <ul>
+                    {nameAmount.map(function(data,id){
+                        if(data.name !==  "" && data.amount !== 0){
+                            return <li> <h2> Name :  {data.name} paid Rs {data.amount}/-  </h2></li>
+                        }
+                    }
+                    )}
+                </ul>
+                <label>Final Step  : &nbsp;</label>
+                <button onClick={calculateShare}>Calculate Share</button>
+                <ul>
+                    {
+                    finalAmount.map(function(data,id){
+                        if(data.amount >  0 && data.name  !== "Select Name"){
+                            return <li> <h2> {data.name} needs to be paid Rs {data.amount}/-  </h2></li>
+                        }
+                        else if(data.amount < 0 && data.name  !==  "Select Name"){
+                            return <li> <h2> {data.name} needs to pay Rs {Math.abs(data.amount)}/-  </h2></li>
                         }
                     })
-                }
-            </ul>
-            <select onChange={handleDropDownChange}>
-                {nameList.map((f,id) =>  <option key={id}>{f}</option>)}
-            </select>
-            &nbsp;
-            <input type="number" onChange={handleAmountEntry}></input>
-            <button  onClick={addExpenseEntry}>Add Entry</button>
-            {/* <h1>Hello , Amount is  {amount} and Name is {dropDownName}</h1> */}
-            <ul>
-                {nameAmount.map(function(data,id){
-                    if(data.name !==  "" && data.amount !== 0){
-                        return <li> <h2> Name :  {data.name} paid Rs {data.amount}/-  </h2></li>
                     }
-                }
-                )}
-            </ul>
-
-            <button onClick={calculateShare}>Calculate Share</button>
-            <ul>
-                {
-                finalAmount.map(function(data,id){
-                    if(data.amount >  0 && data.name  !== "Select Name"){
-                        return <li> <h2> {data.name} needs to be paid Rs {data.amount}/-  </h2></li>
-                    }
-                    else if(data.amount < 0 && data.name  !==  "Select Name"){
-                        return <li> <h2> {data.name} needs to pay Rs {Math.abs(data.amount)}/-  </h2></li>
-                    }
-                })
-                }
-            </ul>
-        </form>
+                </ul>
+            </form>
+        </div>
     )
 }
