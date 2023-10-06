@@ -47,7 +47,7 @@ export default function BillSplitter(){
 
     const calculateShare  = (e) => {
         e.preventDefault()
-        // setFinalAmount([{name:"",amount:0}])
+        setFinalAmount([{}])
         var totalAmount  = 0;
         var avgAmount   = 0;
         
@@ -66,16 +66,19 @@ export default function BillSplitter(){
                     }
                 }
             }
-            console.log(nameList[i]," ",indAmount," ",avgAmount)
+            // console.log(nameList[i]," ",indAmount," ",avgAmount)
+            // somehow this way only works creating obj and then passing it inside setFinalAmount using only prev otherwise it doesnt work
             const tempobj = {
                 name:nameList[i],
                 amount:indAmount-avgAmount
             }
             console.log("tempobj ",tempobj)
-            setFinalAmount([...finalAmount,tempobj])
+            setFinalAmount((prev) =>  {
+                return [...prev,tempobj]
+            })
         }
 
-        console.log("final",finalAmount)
+        // console.log("final",finalAmount)
 
     }
 
@@ -113,14 +116,11 @@ export default function BillSplitter(){
             <ul>
                 {
                 finalAmount.map(function(data,id){
-                    if(data.amount >  0 ){
+                    if(data.amount >  0 && data.name  !== "Select Name"){
                         return <li> <h2> {data.name} needs to be paid Rs {data.amount}/-  </h2></li>
                     }
-                    else if(data.amount < 0){
+                    else if(data.amount < 0 && data.name  !==  "Select Name"){
                         return <li> <h2> {data.name} needs to pay Rs {Math.abs(data.amount)}/-  </h2></li>
-                    }
-                    else{
-
                     }
                 })
                 }
