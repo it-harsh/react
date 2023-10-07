@@ -5,9 +5,10 @@ export default function BillSplitter(){
     const amountRef =  useRef();
 
     const [inputName,setInputName] = useState("")
-    const [nameList,setNameList]  = useState(["Select Name","a","b","c","d"])
+    const [nameList,setNameList]  = useState(["Select Name","a","b","c"])
     const [amount,setAmount] = useState(0)
     const [dropDownName,setDropDownName] = useState("")
+    const [avgPrice,setAvgPrice]  = useState(50)
     const [nameAmount,setNameAmount]  = useState([
         {
             name : "",
@@ -15,7 +16,7 @@ export default function BillSplitter(){
         },
         {
             name : "a",
-            amount  :  10
+            amount  :  110
         },
         {
             name : "b",
@@ -23,11 +24,7 @@ export default function BillSplitter(){
         },
         {
             name : "c",
-            amount  :  80
-        },
-        {
-            name : "d",
-            amount : 80
+            amount  :  10
         }
     ])
     const [finalAmount,setFinalAmount]  = useState([
@@ -39,9 +36,14 @@ export default function BillSplitter(){
 
     const [transaction,setTransaction]  = useState([
         {
-            to : "",
-            from : "",
-            amount  : 0
+            from : "c",
+            to : "a",
+            amount  : 40
+        },
+        {
+            from : "b",
+            to : "a",
+            amount  : 20
         }
     ])
     
@@ -61,7 +63,7 @@ export default function BillSplitter(){
         e.preventDefault()
         if(inputName !== ""){
             setNameList([...nameList,inputName])
-            // nameRef.current.value = '';
+            nameRef.current.value = '';
         }
     }
 
@@ -69,13 +71,91 @@ export default function BillSplitter(){
         e.preventDefault()
         if(dropDownName !== "Select Name" && amount !== 0 && dropDownName !== "")  {
             setNameAmount([...nameAmount,{name:dropDownName,amount:amount}])
-            // amountRef.current.value = 0
+            amountRef.current.value = 0
         }
+    }
+
+    const resetEntries = (e)  => {
+        e.preventDefault()
+        setNameAmount([
+            {
+                name : "",
+                amount  :  0
+            }
+        ])
+    }
+
+    const  resetNames  = (e)  => {
+        e.preventDefault()
+        setNameList(["Select Name"])
+    }
+
+    const resetShare = (e) =>  {
+        e.preventDefault()
+        setTransaction([
+            {
+                from : "",
+                to : "",
+                amount  : 0
+            }
+        ])
+        setAvgPrice(0)
+    }
+
+    const handleExample = (e) => {
+        //set  NameList
+        setNameList(["Select Name","a","b","c"])
+
+        //set Expenses
+        setNameAmount([
+            {
+                name : "",
+                amount  :  0
+            },
+            {
+                name : "a",
+                amount  :  110
+            },
+            {
+                name : "b",
+                amount  :  30
+            },
+            {
+                name : "c",
+                amount  :  10
+            }
+        ])
+
+        //set cost per person
+        setAvgPrice(50)
+
+        //set Transactions
+        setTransaction([
+            {
+                from : "c",
+                to : "a",
+                amount  : 40
+            },
+            {
+                from : "b",
+                to : "a",
+                amount  : 20
+            }
+        ])
+    }
+
+    const resetAll = (e) => {
+        resetEntries(e)
+        resetNames(e)
+        resetShare(e)
     }
 
     const calculateShare  = (e) => {
         e.preventDefault()
+
         setFinalAmount([])
+        //clear transaction history
+        setTransaction([{}])
         
         var totalAmount  = 0;
         var avgAmount   = 0;
@@ -85,6 +165,8 @@ export default function BillSplitter(){
         }
         
         avgAmount  = totalAmount  /  (nameList.length - 1) // because we added a dummy name at start
+
+        setAvgPrice(avgAmount)
 
         for(var i = 0; i<nameList.length  ; i++){
             var indAmount = 0
@@ -111,10 +193,11 @@ export default function BillSplitter(){
         finalAmount.sort((a,b) =>  {  return a.amount - b.amount})
 
         //removing select name entry
-        setFinalAmount(finalAmount.filter((z) => {return (z.name.toString() !== 'Select Name')}))
+        setFinalAmount((prev) => prev.filter((z) => {return (z.name.toString() !== 'Select Name')}))
         
         var start=0;
         var end=finalAmount.length-1;
+        
         //shallow copy
         var t  = [...finalAmount]
 
@@ -122,10 +205,7 @@ export default function BillSplitter(){
         // console.log("stringify ",JSON.parse(JSON.stringify(finalAmount)))
         t = JSON.parse(JSON.stringify(finalAmount))
         
-        //clear transaction history
-        setTransaction([{}])
-
-        console.log("t =  ",finalAmount)
+        // console.log("t =  ",finalAmount)
 
         while(start<end){
             if(Math.abs(t[start].amount) >= Math.abs(t[end].amount)  && start<end){
@@ -142,7 +222,7 @@ export default function BillSplitter(){
                 setTransaction((prev) =>  {
                     return [...prev,ttrans]
                 })
-                console.log("ttrans ",ttrans)
+                // console.log("ttrans ",ttrans)
 
 
                 t[end].amount = 0
@@ -162,7 +242,7 @@ export default function BillSplitter(){
                 setTransaction((prev) =>  {
                     return [...prev,ttrans]
                 })
-                console.log("ttrans ",ttrans)
+                // console.log("ttrans ",ttrans)
 
                 t[start].amount = 0
                 start = start + 1;
@@ -185,15 +265,18 @@ export default function BillSplitter(){
         <div>
             <h1> Split Your Bill ...  </h1>
             <form>
-                <label><h3>Step 1 : Add Names &nbsp;</h3></label>
-                <input type="text" name="addName" required="required" ref={nameRef} placeholder='Enter name here' onChange={handleInputNameChange}></input>
-                &nbsp; <button onClick={addName}>Add Name</button>
+                <label><h3>Step 1 : &nbsp;</h3></label>
+                <input type="text" name="addName" pattern='[a-zA-Z\s]+' required="required" ref={nameRef} placeholder='Enter name here' onChange={handleInputNameChange}></input>
+                &nbsp; 
+                <button onClick={addName}>Add Name</button>
+                &nbsp;
+                <button onClick={resetNames}>Reset Names</button>
                 <br/>
                 <ul>
                     {
                         nameList.map(function(data,id){
                             if(data !== "Select Name"){
-                                return  <li><h5>{data}</h5></li>
+                                return  <li key={id}><h5>{data}</h5></li>
                             }
                         })
                     }
@@ -207,19 +290,23 @@ export default function BillSplitter(){
                 <input type="number" ref={amountRef} placeholder='Enter Expenses' onChange={handleAmountEntry}></input>
                 &nbsp;
                 <button  onClick={addExpenseEntry}>Add Entry</button>
+                &nbsp;
+                <button  onClick={resetEntries}>Reset Entries</button>
                 {/* <h1>Hello , Amount is  {amount} and Name is {dropDownName}</h1> */}
                 <br/>
                 <ul>
                     {nameAmount.map(function(data,id){
                         if(data.name !==  "" && data.amount !== 0){
-                            return <li> <h4> Name :  {data.name} paid Rs {data.amount}/-  </h4></li>
+                            return <li key={id}> <h4> Name :  {data.name} paid Rs {data.amount}/-  </h4></li>
                         }
                     }
                     )}
                 </ul>
                 <br/>
-                <label><h2>Final Step  : &nbsp;</h2></label>
+                <label><h3>Step 3 : &nbsp;</h3></label>
                 <button onClick={calculateShare}>Calculate Share</button>
+                &nbsp;
+                <button onClick={resetShare}>Reset Share</button>
                 <br/>
                 {/* <ul>
                     {
@@ -233,16 +320,23 @@ export default function BillSplitter(){
                     })
                     }
                 </ul> */}
+                <br/>
+                <h3><i><u>Cost Per Person is Rs {avgPrice}/-</u></i></h3>
+                <br/>
                 <ul>
                     {
                     transaction.map(function(data,id){
                         if(data.from !== '' && data.to !== '' && data.amount !== 0 && data.from !== undefined && data.to !== undefined && data.amount  !== undefined ){
-                            console.log(data.from,data.to,data.amount)
-                            return <li> <h4> {data.from}  ===&gt;  {data.to} - Rs {data.amount}/-  </h4></li>
+                            // console.log(data.from,data.to,data.amount)
+                            return <li key={id}> <h4> {data.from}  ===&gt;  {data.to} - Rs {data.amount}/-  </h4></li>
                         }
                     })
                     }
                 </ul>
+                <br/>
+                <button onClick={handleExample}>Default Example</button>
+                &nbsp;
+                <button onClick={resetAll}>Reset Everything</button>
             </form>
         </div>
     )
