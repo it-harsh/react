@@ -5,7 +5,7 @@ export default function BillSplitter(){
     const amountRef =  useRef();
 
     const [inputName,setInputName] = useState("")
-    const [nameList,setNameList]  = useState(["Select Name","a","b","c"])
+    const [nameList,setNameList]  = useState(["Select Name","Dhoni","Virat","Rohit"])
     const [amount,setAmount] = useState(0)
     const [dropDownName,setDropDownName] = useState("")
     const [avgPrice,setAvgPrice]  = useState(50)
@@ -15,15 +15,15 @@ export default function BillSplitter(){
             amount  :  0
         },
         {
-            name : "a",
+            name : "Dhoni",
             amount  :  110
         },
         {
-            name : "b",
+            name : "Virat",
             amount  :  30
         },
         {
-            name : "c",
+            name : "Rohit",
             amount  :  10
         }
     ])
@@ -36,13 +36,13 @@ export default function BillSplitter(){
 
     const [transaction,setTransaction]  = useState([
         {
-            from : "c",
-            to : "a",
+            from : "Rohit",
+            to : "Dhoni",
             amount  : 40
         },
         {
-            from : "b",
-            to : "a",
+            from : "Virat",
+            to : "Dhoni",
             amount  : 20
         }
     ])
@@ -104,7 +104,7 @@ export default function BillSplitter(){
 
     const handleExample = (e) => {
         //set  NameList
-        setNameList(["Select Name","a","b","c"])
+        setNameList(["Select Name","Dhoni","Virat","Rohit"])
 
         //set Expenses
         setNameAmount([
@@ -113,15 +113,15 @@ export default function BillSplitter(){
                 amount  :  0
             },
             {
-                name : "a",
+                name : "Dhoni",
                 amount  :  110
             },
             {
-                name : "b",
+                name : "Virat",
                 amount  :  30
             },
             {
-                name : "c",
+                name : "Rohit",
                 amount  :  10
             }
         ])
@@ -132,13 +132,13 @@ export default function BillSplitter(){
         //set Transactions
         setTransaction([
             {
-                from : "c",
-                to : "a",
+                from : "Rohit",
+                to : "Dhoni",
                 amount  : 40
             },
             {
-                from : "b",
-                to : "a",
+                from : "Virat",
+                to : "Dhoni",
                 amount  : 20
             }
         ])
