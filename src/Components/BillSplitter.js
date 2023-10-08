@@ -102,6 +102,14 @@ export default function BillSplitter(){
         setAvgPrice(0)
     }
 
+    const deleteItem= (e) => {
+        e.preventDefault()
+        setNameAmount((prev) => prev.filter((data,idx) => {
+                    console.log("e.target.value :  ",e.target.value.toString()," idx :  ",idx)
+                    return (idx.toString() !== e.target.value)
+        }))
+    }
+
     const handleExample = (e) => {
         //set  NameList
         setNameList(["Select Name","Dhoni","Virat","Rohit"])
@@ -166,7 +174,7 @@ export default function BillSplitter(){
         
         avgAmount  = totalAmount  /  (nameList.length - 1) // because we added a dummy name at start
 
-        setAvgPrice(avgAmount)
+        setAvgPrice(avgAmount.toFixed(2))
 
         for(var i = 0; i<nameList.length  ; i++){
             var indAmount = 0
@@ -217,7 +225,7 @@ export default function BillSplitter(){
                 const ttrans = {
                     from:t[start].name,
                     to:t[end].name,
-                    amount:Math.abs(t[end].amount)
+                    amount:Math.abs(t[end].amount.toFixed(2))
                 }
                 setTransaction((prev) =>  {
                     return [...prev,ttrans]
@@ -237,7 +245,7 @@ export default function BillSplitter(){
                 const ttrans = {
                     from:t[start].name,
                     to:t[end].name,
-                    amount:Math.abs(t[start].amount)
+                    amount:Math.abs(t[start].amount.toFixed(2))
                 }
                 setTransaction((prev) =>  {
                     return [...prev,ttrans]
@@ -265,22 +273,27 @@ export default function BillSplitter(){
         <div>
             <h1> Split Your Bill ...  </h1>
             <form>
-                <label><h3>Step 1 : &nbsp;</h3></label>
-                <input type="text" name="addName" pattern='[a-zA-Z\s]+' required="required" ref={nameRef} placeholder='Enter name here' onChange={handleInputNameChange}></input>
-                &nbsp; 
-                <button onClick={addName}>Add Name</button>
-                &nbsp;
-                <button onClick={resetNames}>Reset Names</button>
-                <br/>
-                <ul>
-                    {
-                        nameList.map(function(data,id){
-                            if(data !== "Select Name"){
-                                return  <li key={id}><h5>{data}</h5></li>
+                <div class = "container">
+                    <div class = "jumbotron">
+                        <label><h3>Step 1 : &nbsp;</h3></label>
+                        <input type="text" name="addName" required="required" ref={nameRef} placeholder='Enter name here' onChange={handleInputNameChange}></input>
+                        &nbsp; 
+                        <button className="btn btn-success"  onClick={addName}>Add Name</button>
+                        &nbsp;
+                        <button className="btn btn-danger"  onClick={resetNames}>Reset Names</button>
+                        <br/>
+                        <ul>
+                            {
+                                nameList.map(function(data,id){
+                                    if(data !== "Select Name"){
+                                        return  <li key={id}><h5>{data}</h5></li>
+                                    }
+                                })
                             }
-                        })
-                    }
-                </ul>
+                        </ul>
+                    </div>
+                </div>
+                
                 <br/>
                 <label><h3>Step 2 : &nbsp;</h3></label>
                 <select onChange={handleDropDownChange}>
@@ -289,24 +302,26 @@ export default function BillSplitter(){
                 &nbsp;
                 <input type="number" ref={amountRef} placeholder='Enter Expenses' onChange={handleAmountEntry}></input>
                 &nbsp;
-                <button  onClick={addExpenseEntry}>Add Entry</button>
+                <button  className="btn btn-success" onClick={addExpenseEntry}>Add Entry</button>
                 &nbsp;
-                <button  onClick={resetEntries}>Reset Entries</button>
+                <button  className="btn btn-danger" onClick={resetEntries}>Reset Entries</button>
                 {/* <h1>Hello , Amount is  {amount} and Name is {dropDownName}</h1> */}
                 <br/>
                 <ul>
                     {nameAmount.map(function(data,id){
                         if(data.name !==  "" && data.amount !== 0){
-                            return <li key={id}> <h4> Name :  {data.name} paid Rs {data.amount}/-  </h4></li>
+                            return <li style={{lineHeight:"2"}} key={id}> {data.name} paid Rs {data.amount}/-  &nbsp;
+                                    <span value={id} style={{color:"red",lineHeight:"normal",border:"1px solid red"}} onClick={deleteItem} type='button'>&nbsp;X&nbsp;</span>
+                                    </li>
                         }
                     }
                     )}
                 </ul>
                 <br/>
                 <label><h3>Step 3 : &nbsp;</h3></label>
-                <button onClick={calculateShare}>Calculate Share</button>
+                <button className="btn btn-success" onClick={calculateShare}>Calculate Share</button>
                 &nbsp;
-                <button onClick={resetShare}>Reset Share</button>
+                <button className="btn btn-danger" onClick={resetShare}>Reset Share</button>
                 <br/>
                 {/* <ul>
                     {
@@ -334,9 +349,9 @@ export default function BillSplitter(){
                     }
                 </ul>
                 <br/>
-                <button onClick={handleExample}>Default Example</button>
+                <button className="btn btn-info" onClick={handleExample}>Default Example</button>
                 &nbsp;
-                <button onClick={resetAll}>Reset Everything</button>
+                <button className="btn btn-danger" onClick={resetAll}>Reset Everything</button>
             </form>
         </div>
     )

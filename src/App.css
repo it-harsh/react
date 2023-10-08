@@ -6,6 +6,11 @@ ul {
   display: inline-block;
 }
 
+body {
+  color: whitesmoke;
+  background-color: black;
+}
+
 .App ol{
   display: inline-flex;
 }
