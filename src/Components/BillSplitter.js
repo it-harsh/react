@@ -293,7 +293,7 @@ export default function BillSplitter(){
                 
                 <br/>
                 <label><h3>Step 2 : &nbsp;</h3></label>
-                <select className="form-select form-select-sm" style={{display:'inline',width:"150px"}} onChange={handleDropDownChange}>
+                <select className="form-select form-select-sm" style={{fontSize:"14px",display:'inline',width:"150px"}} onChange={handleDropDownChange}>
                     {nameList.map((f,id) =>  <option key={id}>{f}</option>)}
                 </select>
                 &nbsp;
