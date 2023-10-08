@@ -102,14 +102,6 @@ export default function BillSplitter(){
         setAvgPrice(0)
     }
 
-    const deleteItem= (e) => {
-        e.preventDefault()
-        setNameAmount((prev) => prev.filter((data,idx) => {
-                    console.log("e.target.value :  ",e.target.value.toString()," idx :  ",idx)
-                    return (idx.toString() !== e.target.value)
-        }))
-    }
-
     const handleExample = (e) => {
         //set  NameList
         setNameList(["Select Name","Dhoni","Virat","Rohit"])
@@ -158,6 +150,14 @@ export default function BillSplitter(){
         resetShare(e)
     }
 
+    const deleteItem= (e) => {
+        e.preventDefault()
+        setNameAmount((prev) => prev.filter((data,idx) => {
+                    return (idx.toString() !== e.target.id)
+        }))
+        resetShare(e)
+    }
+
     const calculateShare  = (e) => {
         e.preventDefault()
 
@@ -197,11 +197,8 @@ export default function BillSplitter(){
             })
         }
 
-        //sort successful
-        finalAmount.sort((a,b) =>  {  return a.amount - b.amount})
-
-        //removing select name entry
-        setFinalAmount((prev) => prev.filter((z) => {return (z.name.toString() !== 'Select Name')}))
+        //removing select name entry and sorting array based on amount
+        setFinalAmount((prev) => prev.sort((a,b) =>  {  return a.amount - b.amount}).filter((z) => {return (z.name.toString() !== 'Select Name')}))
         
         var start=0;
         var end=finalAmount.length-1;
@@ -273,8 +270,8 @@ export default function BillSplitter(){
         <div>
             <h1> Split Your Bill ...  </h1>
             <form>
-                <div class = "container">
-                    <div class = "jumbotron">
+                <div>
+                    <div>
                         <label><h3>Step 1 : &nbsp;</h3></label>
                         <input type="text" name="addName" required="required" ref={nameRef} placeholder='Enter name here' onChange={handleInputNameChange}></input>
                         &nbsp; 
@@ -311,7 +308,7 @@ export default function BillSplitter(){
                     {nameAmount.map(function(data,id){
                         if(data.name !==  "" && data.amount !== 0){
                             return <li style={{lineHeight:"2"}} key={id}> {data.name} paid Rs {data.amount}/-  &nbsp;
-                                    <span value={id} style={{color:"red",lineHeight:"normal",border:"1px solid red"}} onClick={deleteItem} type='button'>&nbsp;X&nbsp;</span>
+                                    <span id={id} style={{color:"red",lineHeight:"normal",border:"1px solid red"}} onClick={deleteItem} type='button'>&nbsp;X&nbsp;</span>
                                     </li>
                         }
                     }
