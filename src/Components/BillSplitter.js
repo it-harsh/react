@@ -64,6 +64,7 @@ export default function BillSplitter(){
         if(inputName !== ""){
             setNameList([...nameList,inputName])
             nameRef.current.value = '';
+            setInputName("")
         }
     }
 
@@ -71,7 +72,9 @@ export default function BillSplitter(){
         e.preventDefault()
         if(dropDownName !== "Select Name" && amount !== 0 && dropDownName !== "")  {
             setNameAmount([...nameAmount,{name:dropDownName,amount:amount}])
-            amountRef.current.value = 0
+            amountRef.current.value = ''
+            setAmount(0)
+            resetShare(e)
         }
     }
 
@@ -150,12 +153,42 @@ export default function BillSplitter(){
         resetShare(e)
     }
 
-    const deleteItem= (e) => {
+    const deleteItem = (e) => {
         e.preventDefault()
         setNameAmount((prev) => prev.filter((data,idx) => {
                     return (idx.toString() !== e.target.id)
         }))
         resetShare(e)
+    }
+    const deleteName = (e) => {
+        e.preventDefault()
+        var indexName = nameList[parseInt(e.target.id)]
+        // console.log(indexName)
+
+        var flag  = false
+
+        // Find if the name exist in expense list
+        for(var j=0;j<nameAmount.length;j++){
+            if(nameAmount[j].name == indexName){
+                flag=true
+            }
+        }
+
+        //filter now names (if exists) from expense list and then remove name from nameList
+        if(flag == true){
+            var confirmation = window.confirm("These will also remove entries from Expense List. Continue? ")
+            console.log(confirmation)
+            if(confirmation === true && flag == true){
+                setNameAmount((prev) => prev.filter((z)  => {return z.name !== indexName}))
+                setNameList((prev) => prev.filter((z)  => {return z !== indexName}))
+                resetShare(e)
+            }
+        }else{
+            setNameList((prev) => prev.filter((z)  => {return z !== indexName}))
+            resetShare(e)
+        }
+
+
     }
 
     const calculateShare  = (e) => {
@@ -283,7 +316,10 @@ export default function BillSplitter(){
                             {
                                 nameList.map(function(data,id){
                                     if(data !== "Select Name"){
-                                        return  <li key={id}><h5>{data}</h5></li>
+                                        return  <li key={id} style={{fontSize:"17px",lineHeight:"2"}}>{data}&nbsp;&nbsp;
+                                                <span id={id} style={{color:"red",lineHeight:"normal",border:"1px solid red"}} onClick={deleteName} type='button'>&nbsp;X&nbsp;</span>
+                                                </li>
+                                                
                                     }
                                 })
                             }
@@ -307,7 +343,7 @@ export default function BillSplitter(){
                 <ul>
                     {nameAmount.map(function(data,id){
                         if(data.name !==  "" && data.amount !== 0){
-                            return <li style={{lineHeight:"2"}} key={id}> {data.name} paid Rs {data.amount}/-  &nbsp;
+                            return <li style={{fontSize:"17px",lineHeight:"2"}} key={id}> {data.name} paid Rs {data.amount}/-  &nbsp;
                                     <span id={id} style={{color:"red",lineHeight:"normal",border:"1px solid red"}} onClick={deleteItem} type='button'>&nbsp;X&nbsp;</span>
                                     </li>
                         }
