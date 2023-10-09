@@ -88,9 +88,15 @@ export default function BillSplitter(){
         ])
     }
 
-    const  resetNames  = (e)  => {
+    const  resetAll  = (e)  => {
         e.preventDefault()
-        setNameList(["Select Name"])
+        var confirmation = window.confirm("These will remove everything . Continue? ")
+        console.log(confirmation)
+        if(confirmation === true){
+            setNameList(["Select Name"])
+            resetEntries(e)
+            resetShare(e)
+        }
     }
 
     const resetShare = (e) =>  {
@@ -147,11 +153,12 @@ export default function BillSplitter(){
         ])
     }
 
-    const resetAll = (e) => {
-        resetEntries(e)
-        resetNames(e)
-        resetShare(e)
-    }
+    // const resetAll = (e) => {
+        //becuase calling resetName will inturn call confirm button which is not needed
+    //     setNameList(["Select Name"])
+    //     resetEntries(e)
+    //     resetShare(e)
+    // }
 
     const deleteItem = (e) => {
         e.preventDefault()
@@ -310,7 +317,7 @@ export default function BillSplitter(){
                         &nbsp; 
                         <button className="btn btn-success"  onClick={addName}>Add Name</button>
                         &nbsp;
-                        <button className="btn btn-danger"  onClick={resetNames}>Reset Names</button>
+                        <button className="btn btn-danger"  onClick={resetAll}>Reset Names</button>
                         <br/>
                         <ul>
                             {
