@@ -65,6 +65,8 @@ export default function BillSplitter(){
             setNameList([...nameList,inputName])
             nameRef.current.value = '';
             setInputName("")
+            resetShare(e)
+            // calculateShare(e)
         }
     }
 
@@ -75,6 +77,7 @@ export default function BillSplitter(){
             amountRef.current.value = ''
             setAmount(0)
             resetShare(e)
+            // calculateShare(e)
         }
     }
 
@@ -166,6 +169,7 @@ export default function BillSplitter(){
                     return (idx.toString() !== e.target.id)
         }))
         resetShare(e)
+        // calculateShare(e)
     }
     const deleteName = (e) => {
         e.preventDefault()
@@ -189,18 +193,19 @@ export default function BillSplitter(){
                 setNameAmount((prev) => prev.filter((z)  => {return z.name !== indexName}))
                 setNameList((prev) => prev.filter((z)  => {return z !== indexName}))
                 resetShare(e)
+                // calculateShare(e)
             }
         }else{
             setNameList((prev) => prev.filter((z)  => {return z !== indexName}))
             resetShare(e)
+            // calculateShare(e)
         }
 
 
     }
 
     const calculateShare  = (e) => {
-        e.preventDefault()
-
+        
         setFinalAmount([])
         //clear transaction history
         setTransaction([{}])
@@ -237,6 +242,7 @@ export default function BillSplitter(){
             })
         }
 
+        
         //removing select name entry and sorting array based on amount
         setFinalAmount((prev) => prev.sort((a,b) =>  {  return a.amount - b.amount}).filter((z) => {return (z.name.toString() !== 'Select Name')}))
         
@@ -245,13 +251,13 @@ export default function BillSplitter(){
         
         //shallow copy
         var t  = [...finalAmount]
-
+        
         //deep copy examples
         // console.log("stringify ",JSON.parse(JSON.stringify(finalAmount)))
         t = JSON.parse(JSON.stringify(finalAmount))
         
         // console.log("t =  ",finalAmount)
-
+        
         while(start<end){
             if(Math.abs(t[start].amount) >= Math.abs(t[end].amount)  && start<end){
                 // console.log("start = ",start," & end = ",end)                
@@ -288,7 +294,7 @@ export default function BillSplitter(){
                     return [...prev,ttrans]
                 })
                 // console.log("ttrans ",ttrans)
-
+                
                 t[start].amount = 0
                 start = start + 1;
             }
@@ -304,6 +310,8 @@ export default function BillSplitter(){
 
         // console.log("Final",finalAmount)
 
+        //e.preventDefault() at the end so that everything is done and then it stops
+        e.preventDefault()
     }
 
     return(
@@ -340,7 +348,7 @@ export default function BillSplitter(){
                     {nameList.map((f,id) =>  <option key={id}>{f}</option>)}
                 </select>
                 &nbsp;
-                <input type="number" ref={amountRef} placeholder='Enter Expenses' onChange={handleAmountEntry}></input>
+                <input type="number" ref={amountRef} placeholder='Enter Expense Amount' onChange={handleAmountEntry}></input>
                 &nbsp;
                 <button  className="btn btn-success" onClick={addExpenseEntry}>Add Entry</button>
                 &nbsp;
