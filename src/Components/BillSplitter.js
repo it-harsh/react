@@ -1,406 +1,323 @@
-import React,{ useState , useRef} from 'react';
-export default function BillSplitter(){
+import React, { useState, useRef } from 'react';
 
-    const nameRef =  useRef();
-    const amountRef =  useRef();
+export default function BillSplitter() {
+  const nameRef = useRef();
+  const amountRef = useRef();
 
-    const [inputName,setInputName] = useState("")
-    const [nameList,setNameList]  = useState(["Select Name","Dhoni","Virat","Rohit"])
-    const [amount,setAmount] = useState(0)
-    const [dropDownName,setDropDownName] = useState("")
-    const [avgPrice,setAvgPrice]  = useState(50)
-    const [nameAmount,setNameAmount]  = useState([
-        {
-            name : "",
-            amount  :  0
-        },
-        {
-            name : "Dhoni",
-            amount  :  110
-        },
-        {
-            name : "Virat",
-            amount  :  30
-        },
-        {
-            name : "Rohit",
-            amount  :  10
+  const [inputName, setInputName] = useState('');
+  const [nameList, setNameList] = useState([]);
+  const [amount, setAmount] = useState(0);
+  const [dropDownName, setDropDownName] = useState('');
+  const [avgPrice, setAvgPrice] = useState(0);
+  const [nameAmount, setNameAmount] = useState([]);
+  const [transaction, setTransaction] = useState([]);
+
+  const addName = (e) => {
+    e.preventDefault();
+    const trimmed = inputName.trim();
+    if (trimmed !== '' && !nameList.includes(trimmed)) {
+      setNameList([...nameList, trimmed]);
+      nameRef.current.value = '';
+      setInputName('');
+      clearResults();
+    }
+  };
+
+  const addExpenseEntry = (e) => {
+    e.preventDefault();
+    if (dropDownName !== '' && amount > 0) {
+      setNameAmount([...nameAmount, { name: dropDownName, amount: Number(amount) }]);
+      amountRef.current.value = '';
+      setAmount(0);
+      clearResults();
+    }
+  };
+
+  const clearResults = () => {
+    setTransaction([]);
+    setAvgPrice(0);
+  };
+
+  const resetEntries = (e) => {
+    e.preventDefault();
+    setNameAmount([]);
+    clearResults();
+  };
+
+  const resetAll = (e) => {
+    e.preventDefault();
+    if (window.confirm('This will remove everything. Continue?')) {
+      setNameList([]);
+      setNameAmount([]);
+      clearResults();
+      setDropDownName('');
+    }
+  };
+
+  const deleteItem = (e, idx) => {
+    e.preventDefault();
+    setNameAmount((prev) => prev.filter((_, i) => i !== idx));
+    clearResults();
+  };
+
+  const deleteName = (e, idx) => {
+    e.preventDefault();
+    const name = nameList[idx];
+    const hasExpenses = nameAmount.some((entry) => entry.name === name);
+
+    if (hasExpenses) {
+      if (!window.confirm(`This will also remove ${name}'s expenses. Continue?`)) return;
+      setNameAmount((prev) => prev.filter((z) => z.name !== name));
+    }
+    setNameList((prev) => prev.filter((z) => z !== name));
+    clearResults();
+  };
+
+  const handleExample = (e) => {
+    e.preventDefault();
+    setNameList(['Dhoni', 'Virat', 'Rohit']);
+    setNameAmount([
+      { name: 'Dhoni', amount: 110 },
+      { name: 'Virat', amount: 30 },
+      { name: 'Rohit', amount: 10 },
+    ]);
+    setAvgPrice(50);
+    setTransaction([
+      { from: 'Rohit', to: 'Dhoni', amount: 40 },
+      { from: 'Virat', to: 'Dhoni', amount: 20 },
+    ]);
+  };
+
+  const calculateShare = (e) => {
+    e.preventDefault();
+
+    if (nameList.length < 2) return;
+    if (nameAmount.length === 0) return;
+
+    // Step 1: Calculate total and average
+    let totalAmount = 0;
+    for (let i = 0; i < nameAmount.length; i++) {
+      totalAmount += Number(nameAmount[i].amount);
+    }
+    const avgAmount = totalAmount / nameList.length;
+    setAvgPrice(avgAmount.toFixed(2));
+
+    // Step 2: Calculate individual balances
+    const balances = nameList.map((name) => {
+      let paid = 0;
+      for (let j = 0; j < nameAmount.length; j++) {
+        if (nameAmount[j].name === name) {
+          paid += Number(nameAmount[j].amount);
         }
-    ])
-    const [finalAmount,setFinalAmount]  = useState([
-            {
-                name : "",
-                amount  : 0
-            }
-    ])
+      }
+      return { name, amount: paid - avgAmount };
+    });
 
-    const [transaction,setTransaction]  = useState([
-        {
-            from : "Rohit",
-            to : "Dhoni",
-            amount  : 40
-        },
-        {
-            from : "Virat",
-            to : "Dhoni",
-            amount  : 20
-        }
-    ])
-    
-    const handleInputNameChange = (e) => {
-        setInputName(e.target.value)
+    // Step 3: Sort balances (negative first, positive last)
+    balances.sort((a, b) => a.amount - b.amount);
+
+    // Step 4: Two-pointer settlement algorithm
+    const settlements = [];
+    const t = balances.map((b) => ({ ...b })); // deep copy
+    let start = 0;
+    let end = t.length - 1;
+
+    while (start < end) {
+      if (Math.abs(t[start].amount) < 0.01) { start++; continue; }
+      if (Math.abs(t[end].amount) < 0.01) { end--; continue; }
+
+      const transferAmount = Math.min(Math.abs(t[start].amount), Math.abs(t[end].amount));
+
+      settlements.push({
+        from: t[start].name,
+        to: t[end].name,
+        amount: Number(transferAmount.toFixed(2)),
+      });
+
+      t[start].amount += transferAmount;
+      t[end].amount -= transferAmount;
+
+      if (Math.abs(t[start].amount) < 0.01) start++;
+      if (Math.abs(t[end].amount) < 0.01) end--;
     }
 
-    const handleAmountEntry = (e) => {
-        setAmount(e.target.value)
-    }
+    setTransaction(settlements);
+  };
 
-    const handleDropDownChange = (e)  => {
-        setDropDownName(e.target.value)
-    }
+  const hasResults = transaction.length > 0;
 
-    const addName  =  (e)  =>  {
-        e.preventDefault()
-        if(inputName !== ""){
-            setNameList([...nameList,inputName])
-            nameRef.current.value = '';
-            setInputName("")
-            resetShare(e)
-            // calculateShare(e)
-        }
-    }
+  return (
+    <div className="splitter">
+      {/* Header */}
+      <div className="splitter-header">
+        <h1>
+          Split<span>Share</span>
+        </h1>
+        <p>Split expenses fairly among friends</p>
+      </div>
 
-    const addExpenseEntry = (e)  => {
-        e.preventDefault()
-        if(dropDownName !== "Select Name" && amount !== 0 && dropDownName !== "")  {
-            setNameAmount([...nameAmount,{name:dropDownName,amount:amount}])
-            amountRef.current.value = ''
-            setAmount(0)
-            resetShare(e)
-            // calculateShare(e)
-        }
-    }
+      <form onSubmit={(e) => e.preventDefault()}>
+        {/* Step 1: Add Names */}
+        <div className="card">
+          <div className="card-title">
+            <span className="step-badge">1</span>
+            <h2>Add People</h2>
+          </div>
 
-    const resetEntries = (e)  => {
-        e.preventDefault()
-        setNameAmount([
-            {
-                name : "",
-                amount  :  0
-            }
-        ])
-    }
+          <div className="input-row">
+            <input
+              type="text"
+              ref={nameRef}
+              placeholder="Enter a name"
+              onChange={(e) => setInputName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addName(e)}
+            />
+            <button className="btn btn-primary" onClick={addName}>
+              Add
+            </button>
+          </div>
 
-    const  resetAll  = (e)  => {
-        e.preventDefault()
-        var confirmation = window.confirm("These will remove everything . Continue? ")
-        console.log(confirmation)
-        if(confirmation === true){
-            setNameList(["Select Name"])
-            resetEntries(e)
-            resetShare(e)
-        }
-    }
-
-    const resetShare = (e) =>  {
-        e.preventDefault()
-        setTransaction([
-            {
-                from : "",
-                to : "",
-                amount  : 0
-            }
-        ])
-        setAvgPrice(0)
-    }
-
-    const handleExample = (e) => {
-        //set  NameList
-        setNameList(["Select Name","Dhoni","Virat","Rohit"])
-
-        //set Expenses
-        setNameAmount([
-            {
-                name : "",
-                amount  :  0
-            },
-            {
-                name : "Dhoni",
-                amount  :  110
-            },
-            {
-                name : "Virat",
-                amount  :  30
-            },
-            {
-                name : "Rohit",
-                amount  :  10
-            }
-        ])
-
-        //set cost per person
-        setAvgPrice(50)
-
-        //set Transactions
-        setTransaction([
-            {
-                from : "Rohit",
-                to : "Dhoni",
-                amount  : 40
-            },
-            {
-                from : "Virat",
-                to : "Dhoni",
-                amount  : 20
-            }
-        ])
-    }
-
-    // const resetAll = (e) => {
-        //becuase calling resetName will inturn call confirm button which is not needed
-    //     setNameList(["Select Name"])
-    //     resetEntries(e)
-    //     resetShare(e)
-    // }
-
-    const deleteItem = (e) => {
-        e.preventDefault()
-        setNameAmount((prev) => prev.filter((data,idx) => {
-                    return (idx.toString() !== e.target.id)
-        }))
-        resetShare(e)
-        // calculateShare(e)
-    }
-    const deleteName = (e) => {
-        e.preventDefault()
-        var indexName = nameList[parseInt(e.target.id)]
-        // console.log(indexName)
-
-        var flag  = false
-
-        // Find if the name exist in expense list
-        for(var j=0;j<nameAmount.length;j++){
-            if(nameAmount[j].name == indexName){
-                flag=true
-            }
-        }
-
-        //filter now names (if exists) from expense list and then remove name from nameList
-        if(flag == true){
-            var confirmation = window.confirm("These will also remove entries from Expense List. Continue? ")
-            console.log(confirmation)
-            if(confirmation === true && flag == true){
-                setNameAmount((prev) => prev.filter((z)  => {return z.name !== indexName}))
-                setNameList((prev) => prev.filter((z)  => {return z !== indexName}))
-                resetShare(e)
-                // calculateShare(e)
-            }
-        }else{
-            setNameList((prev) => prev.filter((z)  => {return z !== indexName}))
-            resetShare(e)
-            // calculateShare(e)
-        }
-
-
-    }
-
-    const calculateShare  = (e) => {
-        
-        setFinalAmount([])
-        //clear transaction history
-        setTransaction([{}])
-        
-        var totalAmount  = 0;
-        var avgAmount   = 0;
-        
-        for(let i =0 ; i< nameAmount.length ;i++){
-            totalAmount += parseInt(nameAmount[i].amount)
-        }
-        
-        avgAmount  = totalAmount  /  (nameList.length - 1) // because we added a dummy name at start
-
-        setAvgPrice(avgAmount.toFixed(2))
-
-        for(var i = 0; i<nameList.length  ; i++){
-            var indAmount = 0
-            if(nameList[i] !== "Select Name"){
-                for(var j=0;j<nameAmount.length;j++){
-                    if(nameAmount[j].name == nameList[i]){
-                        indAmount += parseInt(nameAmount[j].amount)
-                    }
-                }
-            }
-            // console.log(nameList[i]," ",indAmount," ",avgAmount)
-            // somehow this way only works creating obj and then passing it inside setFinalAmount using only prev otherwise it doesnt work
-            const tempobj = {
-                name:nameList[i],
-                amount:indAmount-avgAmount
-            }
-            // console.log("tempobj ",tempobj)
-            setFinalAmount((prev) =>  {
-                return [...prev,tempobj]
-            })
-        }
-
-        
-        //removing select name entry and sorting array based on amount
-        setFinalAmount((prev) => prev.sort((a,b) =>  {  return a.amount - b.amount}).filter((z) => {return (z.name.toString() !== 'Select Name')}))
-        
-        var start=0;
-        var end=finalAmount.length-1;
-        
-        //shallow copy
-        var t  = [...finalAmount]
-        
-        //deep copy examples
-        // console.log("stringify ",JSON.parse(JSON.stringify(finalAmount)))
-        t = JSON.parse(JSON.stringify(finalAmount))
-        
-        // console.log("t =  ",finalAmount)
-        
-        while(start<end){
-            if(Math.abs(t[start].amount) >= Math.abs(t[end].amount)  && start<end){
-                // console.log("start = ",start," & end = ",end)                
-                t[start].amount = (t[start].amount + t[end].amount)
-                // console.log(t[start].name," ===== ",Math.abs(t[end].amount) ,  " ===== > ",t[end].name)
-                
-                // set transaction items
-                const ttrans = {
-                    from:t[start].name,
-                    to:t[end].name,
-                    amount:Math.abs(t[end].amount.toFixed(2))
-                }
-                setTransaction((prev) =>  {
-                    return [...prev,ttrans]
-                })
-                // console.log("ttrans ",ttrans)
-
-
-                t[end].amount = 0
-                end = end - 1;
-            }
-            else if(Math.abs(t[start].amount) <  Math.abs(t[end].amount)  && start<end){
-                // console.log("start = ",start," & end = ",end) 
-                t[end].amount = (t[start].amount + t[end].amount)
-                // console.log(t[start].name," ===== ",Math.abs(t[start].amount) ,  " ===== > ",t[end].name)
-                
-                // set transaction items
-                const ttrans = {
-                    from:t[start].name,
-                    to:t[end].name,
-                    amount:Math.abs(t[start].amount.toFixed(2))
-                }
-                setTransaction((prev) =>  {
-                    return [...prev,ttrans]
-                })
-                // console.log("ttrans ",ttrans)
-                
-                t[start].amount = 0
-                start = start + 1;
-            }
-            // else if(Math.abs(t[start].amount) == Math.abs(t[end].amount) && start<end){
-            //     // console.log("start = ",start," & end = ",end) 
-            //     console.log(t[start].name,"  ===== ",t[end].amount ,  " ===== > ",t[end].name)
-            //     t[end] = 0
-            //     t[start] =  0;
-            //     start = start +  1 ;
-            //     end = end - 1 ;
-            // }
-        }
-
-        // console.log("Final",finalAmount)
-
-        //e.preventDefault() at the end so that everything is done and then it stops
-        e.preventDefault()
-    }
-
-    return(
-        <div>
-            <h1> Split Your Bill ...  </h1>
-            <form>
-                <div>
-                    <div>
-                        <label><h3>Step 1 : &nbsp;</h3></label>
-                        <input type="text" name="addName" required="required" ref={nameRef} placeholder='Enter name here' onChange={handleInputNameChange}></input>
-                        &nbsp; 
-                        <button className="btn btn-success"  onClick={addName}>Add Name</button>
-                        &nbsp;
-                        <button className="btn btn-danger"  onClick={resetAll}>Reset Names</button>
-                        <br/>
-                        <ul>
-                            {
-                                nameList.map(function(data,id){
-                                    if(data !== "Select Name"){
-                                        return  <li key={id} style={{fontSize:"17px",lineHeight:"2"}}>{data}&nbsp;&nbsp;
-                                                <span id={id} style={{color:"red",lineHeight:"normal",border:"1px solid red"}} onClick={deleteName} type='button'>&nbsp;X&nbsp;</span>
-                                                </li>
-                                                
-                                    }
-                                })
-                            }
-                        </ul>
-                    </div>
-                </div>
-                
-                <br/>
-                <label><h3>Step 2 : &nbsp;</h3></label>
-                <select className="form-select form-select-sm" style={{fontSize:"14px",display:'inline',width:"150px"}} onChange={handleDropDownChange}>
-                    {nameList.map((f,id) =>  <option key={id}>{f}</option>)}
-                </select>
-                &nbsp;
-                <input type="number" ref={amountRef} placeholder='Enter Expense Amount' onChange={handleAmountEntry}></input>
-                &nbsp;
-                <button  className="btn btn-success" onClick={addExpenseEntry}>Add Entry</button>
-                &nbsp;
-                <button  className="btn btn-danger" onClick={resetEntries}>Reset Entries</button>
-                {/* <h1>Hello , Amount is  {amount} and Name is {dropDownName}</h1> */}
-                <br/>
-                <ul>
-                    {nameAmount.map(function(data,id){
-                        if(data.name !==  "" && data.amount !== 0){
-                            return <li style={{fontSize:"17px",lineHeight:"2"}} key={id}> {data.name} paid Rs {data.amount}/-  &nbsp;
-                                    <span id={id} style={{color:"red",lineHeight:"normal",border:"1px solid red"}} onClick={deleteItem} type='button'>&nbsp;X&nbsp;</span>
-                                    </li>
-                        }
-                    }
-                    )}
-                </ul>
-                <br/>
-                <label><h3>Step 3 : &nbsp;</h3></label>
-                <button className="btn btn-success" onClick={calculateShare}>Calculate Share</button>
-                &nbsp;
-                <button className="btn btn-danger" onClick={resetShare}>Reset Share</button>
-                <br/>
-                {/* <ul>
-                    {
-                    finalAmount.map(function(data,id){
-                        if(data.amount >  0 && data.name  !== "Select Name"){
-                            return <li> <h4> {data.name} needs to be paid Rs {data.amount}/-  </h4></li>
-                        }
-                        else if(data.amount < 0 && data.name  !==  "Select Name"){
-                            return <li> <h4> {data.name} needs to pay Rs {Math.abs(data.amount)}/-  </h4></li>
-                        }
-                    })
-                    }
-                </ul> */}
-                <br/>
-                <h3><i><u>Cost Per Person is Rs {avgPrice}/-</u></i></h3>
-                <br/>
-                <ul>
-                    {
-                    transaction.map(function(data,id){
-                        if(data.from !== '' && data.to !== '' && data.amount !== 0 && data.from !== undefined && data.to !== undefined && data.amount  !== undefined ){
-                            // console.log(data.from,data.to,data.amount)
-                            return <li key={id}> <h4> {data.from}  ===&gt;  {data.to} - Rs {data.amount}/-  </h4></li>
-                        }
-                    })
-                    }
-                </ul>
-                <br/>
-                <button className="btn btn-info" onClick={handleExample}>Default Example</button>
-                &nbsp;
-                <button className="btn btn-danger" onClick={resetAll}>Reset Everything</button>
-            </form>
+          {nameList.length === 0 ? (
+            <div className="empty-state">No people added yet</div>
+          ) : (
+            <ul className="list">
+              {nameList.map((name, id) => (
+                <li key={id} className="list-item">
+                  <span className="list-item-text">
+                    <span className="list-item-name">{name}</span>
+                  </span>
+                  <button className="delete-btn" onClick={(e) => deleteName(e, id)} title="Remove">
+                    &times;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-    )
+
+        {/* Step 2: Add Expenses */}
+        <div className="card">
+          <div className="card-title">
+            <span className="step-badge">2</span>
+            <h2>Add Expenses</h2>
+          </div>
+
+          <div className="input-row">
+            <select onChange={(e) => setDropDownName(e.target.value)} value={dropDownName}>
+              <option value="">Select person</option>
+              {nameList.map((name, id) => (
+                <option key={id} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              ref={amountRef}
+              placeholder="Amount"
+              min="0"
+              onChange={(e) => setAmount(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addExpenseEntry(e)}
+            />
+            <button className="btn btn-primary" onClick={addExpenseEntry}>
+              Add
+            </button>
+          </div>
+
+          {nameAmount.length === 0 ? (
+            <div className="empty-state">No expenses recorded yet</div>
+          ) : (
+            <>
+              <ul className="list">
+                {nameAmount.map((data, id) => (
+                  <li key={id} className="list-item">
+                    <span className="list-item-text">
+                      <span className="list-item-name">{data.name}</span>
+                      <span className="list-item-amount">paid &#8377;{data.amount}</span>
+                    </span>
+                    <button className="delete-btn" onClick={(e) => deleteItem(e, id)} title="Remove">
+                      &times;
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div style={{ marginTop: '0.75rem' }}>
+                <button className="btn btn-danger" onClick={resetEntries}>
+                  Clear Expenses
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Step 3: Calculate */}
+        <div className="card">
+          <div className="card-title">
+            <span className="step-badge">3</span>
+            <h2>Settlement</h2>
+          </div>
+
+          <div className="btn-group" style={{ marginBottom: '1rem' }}>
+            <button
+              className="btn btn-primary"
+              onClick={calculateShare}
+              disabled={nameList.length < 2 || nameAmount.length === 0}
+            >
+              Calculate Share
+            </button>
+            {hasResults && (
+              <button className="btn btn-danger" onClick={(e) => { e.preventDefault(); clearResults(); }}>
+                Clear
+              </button>
+            )}
+          </div>
+
+          {hasResults && (
+            <>
+              <div className="result-card">
+                <div className="result-label">Cost per person</div>
+                <div className="result-value">&#8377;{avgPrice}</div>
+              </div>
+
+              {transaction.length === 0 ? (
+                <div className="empty-state">Everyone is settled up!</div>
+              ) : (
+                <div>
+                  {transaction.map((data, id) => (
+                    <div key={id} className="transaction-item">
+                      <span className="transaction-from">{data.from}</span>
+                      <span className="transaction-arrow">&rarr;</span>
+                      <span className="transaction-to">{data.to}</span>
+                      <span className="transaction-amount">&#8377;{data.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {!hasResults && (
+            <div className="empty-state">
+              Add at least 2 people and some expenses, then calculate
+            </div>
+          )}
+        </div>
+      </form>
+
+      {/* Footer */}
+      <div className="splitter-footer">
+        <div className="btn-group">
+          <button className="btn btn-secondary" onClick={handleExample}>
+            Load Example
+          </button>
+          <button className="btn btn-danger" onClick={resetAll}>
+            Reset Everything
+          </button>
+        </div>
+        <p className="footer-text">
+          Built by <a href="https://github.com/it-harsh" target="_blank" rel="noopener noreferrer">Harsh Patel</a>
+        </p>
+      </div>
+    </div>
+  );
 }
